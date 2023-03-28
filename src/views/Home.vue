@@ -43,6 +43,7 @@
           size="x-large"
           color="secondary"
           theme="primary"
+          @click="checkAnswer"
         >
           <h5 class="text-h5">
             {{ choice }}
@@ -109,7 +110,7 @@ export default {
       return array;
     },
     getQuestion: async function () {
-      if (this.answered == 3) {
+      if (this.answered >= 3) {
         this.endGame();
       }
       const db = useFirestore();
@@ -144,15 +145,25 @@ export default {
       this.interval = setInterval(() => {
         if (this.timer === 0) {
           this.timer = this.timeLimit;
-          clearInterval(this.interval);
+          /*clearInterval(this.interval);*/
           this.endGame();
         } else {
           this.timer--;
         }
       }, 1000);
     },
+    checkAnswer: function (event) {
+      console.log(event.target.innerText);
+      const response = event.target.innerText;
+      if (response == this.question.answer) {
+        this.nextQuestion();
+      } else {
+        this.endGame();
+      }
+    },
     endGame: function () {
       console.log("end game");
+      clearInterval(this.interval);
       /*this.nextQuestion();*/
     },
     nextQuestion: function () {
