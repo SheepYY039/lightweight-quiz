@@ -23,7 +23,7 @@
     <v-progress-linear
       class="my-2"
       color="primary"
-      model-value="20"
+      :model-value="(timer / timeLimit) * 100"
       height="5"
       stream
     ></v-progress-linear>
@@ -55,21 +55,17 @@
   </v-container>
 </template>
 
-<script lang="ts" setup></script>
-
 <script lang="ts">
 import { useFirestore, useCollection } from "vuefire";
 import {
   collection,
   getCountFromServer,
-  getDoc,
   getDocs,
   limit,
   orderBy,
   query,
   startAt,
 } from "firebase/firestore";
-import { firebaseApp } from "../plugins/firebase";
 
 const db = useFirestore();
 const questionCollection = collection(db, "questions");
@@ -86,10 +82,14 @@ export default {
         unit: null,
         id: null,
       },
+      timeLimit: 20,
+      timer: 20,
+      interval: null,
     };
   },
   mounted() {
     this.getCount();
+    this.timerFunction();
   },
   methods: {
     randomNumber: function (min: number, max: number): number {
@@ -123,6 +123,20 @@ export default {
 
       console.log(this.question);
       await this.$nextTick(function () {});
+    },
+    timerFunction: function () {
+      this.interval = setInterval(() => {
+        if (this.timer === 0) {
+          this.timer = this.timeLimit;
+          clearInterval(this.interval);
+                   this.endGame(); 
+        } else {
+          this.timer--;
+        }
+      }, 1000);
+    },
+    endGame: function () {
+      console.log("end game");
     },
   },
 };
