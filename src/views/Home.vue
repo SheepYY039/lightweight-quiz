@@ -27,8 +27,8 @@
     ></v-progress-linear>
     <v-row align="center" justify="center">
       <v-col
-        v-for="question in this.question.options"
-        :key="question"
+        v-for="choice in this.question.choices"
+        :key="choice"
         class="text-center"
         cols-lg="12"
         cols="auto"
@@ -45,7 +45,7 @@
           theme="primary"
         >
           <h5 class="text-h5">
-            {{ question }}
+            {{ choice }}
           </h5>
         </v-btn>
       </v-col>
@@ -96,16 +96,30 @@ export default {
     /*this.timerFunction();*/
   },
   methods: {
+    rand: function () {
+      const cryp = window.crypto || window.msCrypto;
+      var tab = new Uint8Array(1);
+      return cryp.getRandomValues(tab)[0] / 256;
+    },
+    shuffle: function (array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(this.rand() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    },
     getQuestion: async function () {
-            if(this.answered == 3){
-                this.endGame();
-            }
+      if (this.answered == 3) {
+        this.endGame();
+      }
       const db = useFirestore();
       const questionsRef = collection(db, "questions");
       var count = 0;
       var q;
       while (count <= 0) {
-        q = query(questionsRef, where("random", ">=", Math.random()), limit(1));
+        const random = this.rand();
+        console.log(random);
+        q = query(questionsRef, where("random", ">=", random), limit(1));
         const snapshot = await getCountFromServer(q);
         count = snapshot.data().count;
         console.log(count);
@@ -120,6 +134,9 @@ export default {
 
       console.log(this.question);
       await this.$nextTick(function () {});
+      this.question.choices = [...this.question.options, this.question.answer];
+      /*this.question.choices.push(this.question.answer);*/
+      this.question.choices = this.shuffle(this.question.choices);
       this.answered++;
       this.timerFunction();
     },
