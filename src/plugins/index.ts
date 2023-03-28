@@ -5,16 +5,16 @@
  */
 
 // Plugins
-import { loadFonts } from './webfontloader'
-import vuetify from './vuetify'
-import router from '../router'
+import { loadFonts } from "./webfontloader";
+import vuetify from "./vuetify";
+import router from "../router";
+import { firebaseApp } from "./firebase";
 
 // Types
-import type { App } from 'vue'
+import type { App } from "vue";
+import { VueFire } from "vuefire";
 
-export function registerPlugins (app: App) {
-  loadFonts()
-  app
-    .use(vuetify)
-    .use(router)
+export function registerPlugins(app: App) {
+  loadFonts();
+  app.use(vuetify).use(router).use(VueFire, { firebaseApp, modules: [] });
 }
