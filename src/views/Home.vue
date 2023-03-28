@@ -11,12 +11,10 @@
           :rotate="360"
           :size="100"
           :width="15"
-          :model-value="value"
+          :model-value="(answered / 3) * 100"
           color="primary"
         >
-          <h6 class="text-h6">
-            {{ value == 33.3 && "1/3" }}
-          </h6>
+          <h6 class="text-h6">{{ answered }}/3</h6>
         </v-progress-circular>
       </v-col>
     </v-row>
@@ -59,12 +57,17 @@
 import { useFirestore, useCollection } from "vuefire";
 import {
   collection,
+  documentId,
+  FieldPath,
   getCountFromServer,
+  getDoc,
   getDocs,
   limit,
+  or,
   orderBy,
   query,
   startAt,
+  where,
 } from "firebase/firestore";
 
 const db = useFirestore();
@@ -75,6 +78,7 @@ export default {
   data: function () {
     return {
       value: 33.3,
+      answered: 0,
       question: {
         quertion: null,
         choices: [],
@@ -88,32 +92,25 @@ export default {
     };
   },
   mounted() {
-    this.getCount();
-    this.timerFunction();
+    this.getQuestion();
+    /*this.timerFunction();*/
   },
   methods: {
-    randomNumber: function (min: number, max: number): number {
-      return Math.floor(Math.random() * (max - min + 1)) + min;
-    },
-    getCount: async function () {
+    getQuestion: async function () {
+            if(this.answered == 3){
+                this.endGame();
+            }
       const db = useFirestore();
       const questionsRef = collection(db, "questions");
-      /*const count = useCollection(questionsRef);*/
-      const rand = await getCountFromServer(questionsRef).then((result) => {
-        const count = result.data().count;
+      var count = 0;
+      var q;
+      while (count <= 0) {
+        q = query(questionsRef, where("random", ">=", Math.random()), limit(1));
+        const snapshot = await getCountFromServer(q);
+        count = snapshot.data().count;
         console.log(count);
+      }
 
-        const rand = this.randomNumber(0, count);
-        console.log(questionsRef);
-        console.log(rand);
-        return rand;
-      });
-      const q = query(
-        questionsRef,
-        orderBy("question"),
-        limit(1),
-        startAt(rand)
-      );
       const querySnapshot = await getDocs(q);
       querySnapshot.forEach((doc) => {
         console.log(doc.id);
@@ -123,13 +120,15 @@ export default {
 
       console.log(this.question);
       await this.$nextTick(function () {});
+      this.answered++;
+      this.timerFunction();
     },
     timerFunction: function () {
       this.interval = setInterval(() => {
         if (this.timer === 0) {
           this.timer = this.timeLimit;
           clearInterval(this.interval);
-                   this.endGame(); 
+          this.endGame();
         } else {
           this.timer--;
         }
@@ -137,6 +136,11 @@ export default {
     },
     endGame: function () {
       console.log("end game");
+      /*this.nextQuestion();*/
+    },
+    nextQuestion: function () {
+      console.log("next");
+      this.getQuestion();
     },
   },
 };
