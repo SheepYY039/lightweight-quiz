@@ -1,5 +1,5 @@
 <template>
-  <v-container v-if="this.question.question != null || this.showDialog">
+  <v-container>
     <v-dialog
       fullscreen
       persistent
@@ -16,7 +16,7 @@
           ></v-icon>
 
           <div class="text-h2 font-weight-bold">{{ this.dialogTitle }}</div>
-          <div class="text-h4 font-weight-bold">{{ this.dialogText }}</div>
+          <div class="text-h4 mx-auto">{{ this.dialogText }}</div>
         </div>
         <v-btn
           rounded="lg"
@@ -32,7 +32,7 @@
     <v-row justify="space-between">
       <v-col>
         <h4 class="text-h4 color-primary" color="primary">
-          {{ this.question.question }}
+          {{ this.questions[this.answered].question }}
         </h4>
       </v-col>
       <v-col cols="1">
@@ -40,10 +40,10 @@
           :rotate="360"
           :size="100"
           :width="15"
-          :model-value="(answered / 3) * 100"
+          :model-value="((answered + 1) / 3) * 100"
           color="primary"
         >
-          <h6 class="text-h6">{{ answered }}/3</h6>
+          <h6 class="text-h6">{{ answered + 1 }}/3</h6>
         </v-progress-circular>
       </v-col>
     </v-row>
@@ -56,8 +56,8 @@
     ></v-progress-linear>
     <v-row align="center" justify="center">
       <v-col
-        v-for="choice in this.question.choices"
-        :key="choice"
+        v-for="choice in this.questions[this.answered].choices"
+        :key="choice + answered"
         class="text-center"
         cols-lg="12"
         cols="auto"
@@ -109,19 +109,21 @@ export default {
     return {
       value: 33.3,
       answered: 0,
-      question: {
-        quertion: null,
-        choices: [],
-        answer: null,
-        unit: null,
-        id: null,
-      },
+      questions: [
+        {
+          question: null,
+          choices: [],
+          answer: null,
+          unit: null,
+          id: null,
+        },
+      ],
       timeLimit: 20,
       timer: 20,
       interval: null,
       showDialog: true,
-      dialogText: "Start Game Now!",
-      dialogTitle: "Start Game Now!",
+      dialogText: "點擊按鈕開始遊戲",
+      dialogTitle: "立刻開始！",
     };
   },
   mounted() {
@@ -161,26 +163,26 @@ export default {
       while (count <= 0) {
         const random = this.rand();
         console.log(random);
-        q = query(questionsRef, where("random", ">=", random), limit(1));
+        q = query(questionsRef, where("random", ">=", random), limit(3));
         const snapshot = await getCountFromServer(q);
         count = snapshot.data().count;
         console.log(count);
       }
 
       const querySnapshot = await getDocs(q);
+      var cleanQuestions = [];
       querySnapshot.forEach((doc) => {
         console.log(doc.id);
         console.log(doc.data());
-        this.question = doc.data();
+        cleanQuestions.push({
+          ...doc.data(),
+          choices: this.shuffle([...doc.data().options, doc.data().answer]),
+        });
       });
+      this.questions = cleanQuestions;
 
-      console.log(this.question);
+      console.log(this.questions);
       await this.$nextTick(function () {});
-      this.question.choices = [...this.question.options, this.question.answer];
-      /*this.question.choices.push(this.question.answer);*/
-      this.question.choices = this.shuffle(this.question.choices);
-      this.answered++;
-      // this.timerFunction();
     },
     timerFunction: function () {
       this.interval = setInterval(() => {
@@ -188,7 +190,7 @@ export default {
           // Times up, reset timer
           //this.timer = this.timeLimit;
           /*clearInterval(this.interval);*/
-          this.dialogTitle="Time's UP!"
+          this.dialogTitle = "時間到!";
           this.endGame();
         } else {
           // decrement timer
@@ -199,20 +201,12 @@ export default {
     checkAnswer: function (event) {
       console.log(event.target.innerText);
       const response = event.target.innerText;
-      if (response == this.question.answer) {
-        //answered correct
-        if (this.answered >= 3) {
-          // answered 3 questions
-          this.dialogTitle="All Correct!"
-          this.endGame();
-        } else {
-          // continue next question
-          this.nextQuestion();
-        }
+      if (response == this.questions[this.answered].answer) {
+        this.nextQuestion();
       } else {
         //Answer wrong
+        this.dialogTitle = "哎呀，錯了!";
         this.endGame();
-          this.dialogTitle="Oops!"
       }
     },
     endGame: function () {
@@ -227,7 +221,15 @@ export default {
     },
     nextQuestion: function () {
       console.log("next");
-      this.getQuestion();
+      //      this.getQuestion();
+
+      this.answered++;
+      //answered correct
+      if (this.answered >= 3) {
+        // answered 3 questions
+        this.dialogTitle = "全部正確!";
+        this.endGame();
+      }
     },
   },
 };
