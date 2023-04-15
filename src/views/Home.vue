@@ -1,5 +1,16 @@
 <template>
-  <v-container v-if="this.question.question != null">
+  <v-container v-if="this.question.question != null || this.showDialog">
+    <v-dialog persistent v-model="showDialog" class="fill-height" width="auto">
+      <v-card>
+        <v-card-text> 游戏结束 </v-card-text>
+        <v-card-actions
+          ><v-btn color="primary" @click="showDialog = false"
+            >开始游戏</v-btn
+          ></v-card-actions
+        >
+      </v-card>
+    </v-dialog>
+
     <v-row justify="space-between">
       <v-col>
         <h4 class="text-h4 color-primary" color="primary">
@@ -54,7 +65,7 @@
   </v-container>
 </template>
 
-<script lang="ts">
+<script>
 import { useFirestore, useCollection } from "vuefire";
 import {
   collection,
@@ -90,11 +101,24 @@ export default {
       timeLimit: 20,
       timer: 20,
       interval: null,
+      showDialog: true,
     };
   },
   mounted() {
-    this.getQuestion();
+    // this.getQuestion();
     /*this.timerFunction();*/
+    this.showDialog = true;
+  },
+  watch: {
+    showDialog: function (value) {
+      // If show Dialog == game finish, either time up or wrong
+      //stop timer
+      // If close Dialog, start game, activate timer
+      if (!value) {
+        this.getQuestion();
+        this.timerFunction();
+      }
+    },
   },
   methods: {
     rand: function () {
@@ -110,9 +134,6 @@ export default {
       return array;
     },
     getQuestion: async function () {
-      if (this.answered >= 3) {
-        this.endGame();
-      }
       const db = useFirestore();
       const questionsRef = collection(db, "questions");
       var count = 0;
@@ -139,15 +160,17 @@ export default {
       /*this.question.choices.push(this.question.answer);*/
       this.question.choices = this.shuffle(this.question.choices);
       this.answered++;
-      this.timerFunction();
+      // this.timerFunction();
     },
     timerFunction: function () {
       this.interval = setInterval(() => {
         if (this.timer === 0) {
-          this.timer = this.timeLimit;
+          // Times up, reset timer
+          //this.timer = this.timeLimit;
           /*clearInterval(this.interval);*/
           this.endGame();
         } else {
+          // decrement timer
           this.timer--;
         }
       }, 1000);
@@ -156,14 +179,27 @@ export default {
       console.log(event.target.innerText);
       const response = event.target.innerText;
       if (response == this.question.answer) {
-        this.nextQuestion();
+        //answered correct
+        if (this.answered >= 3) {
+          // answered 3 questions
+          this.endGame();
+        } else {
+          // continue next question
+          this.nextQuestion();
+        }
       } else {
+        //Answer wrong
         this.endGame();
       }
     },
     endGame: function () {
       console.log("end game");
+      //Stop interval
       clearInterval(this.interval);
+      this.answered = 0;
+      this.showDialog = true;
+      //reset timer
+      this.timer = this.timeLimit;
       /*this.nextQuestion();*/
     },
     nextQuestion: function () {
