@@ -87,6 +87,7 @@
 import { useFirestore, useCollection } from "vuefire";
 import {
   collection,
+  doc,
   documentId,
   FieldPath,
   getCountFromServer,
@@ -96,14 +97,17 @@ import {
   or,
   orderBy,
   query,
+  setDoc,
   startAt,
+  updateDoc,
   where,
 } from "firebase/firestore";
+import { questionsRef } from "@/plugins/firebase";
 
 const db = useFirestore();
 const questionCollection = collection(db, "questions");
-const questions = useCollection(questionCollection);
-console.log(questions);
+const allQuestions = useCollection(questionCollection);
+console.log(allQuestions);
 export default {
   data: function () {
     return {
@@ -176,6 +180,7 @@ export default {
         console.log(doc.data());
         cleanQuestions.push({
           ...doc.data(),
+          _id: doc.id,
           choices: this.shuffle([...doc.data().options, doc.data().answer]),
         });
       });
@@ -200,12 +205,20 @@ export default {
     },
     checkAnswer: function (event) {
       console.log(event.target.innerText);
-      const response = event.target.innerText;
-      if (response == this.questions[this.answered].answer) {
+      const response = event.target.innerText.trim().replace(/&nbsp;/g, " ");
+      const answer = this.questions[this.answered].answer.trim();
+      //console.log("response"+ event.target);
+
+      updateDoc(doc(db, "questions", this.questions[this.answered]._id), {
+        random: this.rand(),
+      });
+      if (response == answer) {
+        //if (response == this.questions[this.answered].answer) {
         this.nextQuestion();
       } else {
+        console.log(response, answer);
         //Answer wrong
-        this.dialogTitle = "哎呀，錯了!";
+        this.dialogTitle = "哎呀，錯了!答案不是" + response + " bUT " + answer;
         this.endGame();
       }
     },
@@ -222,8 +235,7 @@ export default {
     nextQuestion: function () {
       console.log("next");
       //      this.getQuestion();
-
-      this.answered++;
+      this.answered = this.answered + 1;
       //answered correct
       if (this.answered >= 3) {
         // answered 3 questions
