@@ -1,12 +1,30 @@
 <template>
   <v-container v-if="this.question.question != null || this.showDialog">
-    <v-dialog persistent v-model="showDialog" class="fill-height" width="auto">
-      <v-card>
-        <v-card-text> 游戏结束 </v-card-text>
-        <v-card-actions
-          ><v-btn color="primary" @click="showDialog = false"
-            >开始游戏</v-btn
-          ></v-card-actions
+    <v-dialog
+      fullscreen
+      persistent
+      v-model="showDialog"
+      class="fill-height fill-width"
+    >
+      <v-card class="px-auto" height="auto" color="secondary">
+        <div class="py-12 text-center">
+          <v-icon
+            class="mb-6"
+            color="primary"
+            icon="mdi-rocket"
+            size="128"
+          ></v-icon>
+
+          <div class="text-h2 font-weight-bold">{{ this.dialogTitle }}</div>
+          <div class="text-h4 font-weight-bold">{{ this.dialogText }}</div>
+        </div>
+        <v-btn
+          rounded="lg"
+          size="x-large"
+          class="mx-auto"
+          color="primary"
+          @click="showDialog = false"
+          >开始游戏</v-btn
         >
       </v-card>
     </v-dialog>
@@ -102,6 +120,8 @@ export default {
       timer: 20,
       interval: null,
       showDialog: true,
+      dialogText: "Start Game Now!",
+      dialogTitle: "Start Game Now!",
     };
   },
   mounted() {
@@ -168,6 +188,7 @@ export default {
           // Times up, reset timer
           //this.timer = this.timeLimit;
           /*clearInterval(this.interval);*/
+          this.dialogTitle="Time's UP!"
           this.endGame();
         } else {
           // decrement timer
@@ -182,6 +203,7 @@ export default {
         //answered correct
         if (this.answered >= 3) {
           // answered 3 questions
+          this.dialogTitle="All Correct!"
           this.endGame();
         } else {
           // continue next question
@@ -190,6 +212,7 @@ export default {
       } else {
         //Answer wrong
         this.endGame();
+          this.dialogTitle="Oops!"
       }
     },
     endGame: function () {
