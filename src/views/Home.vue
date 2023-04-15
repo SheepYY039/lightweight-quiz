@@ -6,7 +6,7 @@
       v-model="showDialog"
       class="fill-height fill-width"
     >
-      <v-card class="px-auto" height="auto" color="secondary">
+      <v-card class="px-auto" color="secondary">
         <div class="py-12 text-center">
           <v-icon
             class="mb-6"
@@ -26,6 +26,36 @@
           @click="showDialog = false"
           >开始游戏</v-btn
         >
+        <v-card
+          v-if="this.wrongAnswer != ''"
+          class="mx-auto my-2 mt-6"
+          flat="true"
+          width="400"
+          prepend-icon="mdi-close-thick"
+          color="error"
+          variant="elevated"
+        >
+          <template v-slot:title>
+            <div class="text-h6 font-weight-bold">
+              {{ this.wrongAnswer }}
+            </div></template
+          >
+        </v-card>
+        <v-card
+          v-if="this.correctAnswer != ''"
+          class="mx-auto my-2"
+          width="400"
+          flat="true"
+          prepend-icon="mdi-check-bold"
+          color="success"
+          variant="elevated"
+        >
+          <template v-slot:title>
+            <div class="text-h6 font-weight-bold">
+              {{ this.correctAnswer }}
+            </div>
+          </template>
+        </v-card>
       </v-card>
     </v-dialog>
 
@@ -128,6 +158,8 @@ export default {
       showDialog: true,
       dialogText: "點擊按鈕開始遊戲",
       dialogTitle: "立刻開始！",
+      correctAnswer: "",
+      wrongAnswer: "",
     };
   },
   mounted() {
@@ -141,6 +173,8 @@ export default {
       //stop timer
       // If close Dialog, start game, activate timer
       if (!value) {
+        this.wrongAnswer = "";
+        this.correctAnswer = "";
         this.getQuestion();
         this.timerFunction();
       }
@@ -166,8 +200,13 @@ export default {
       var q;
       while (count <= 0) {
         const random = this.rand();
+
         console.log(random);
-        q = query(questionsRef, where("random", ">=", random), limit(3));
+        q = query(
+          questionsRef,
+          where("random", ">=", random > 0.8 ? random - 0.2 : random),
+          limit(3)
+        );
         const snapshot = await getCountFromServer(q);
         count = snapshot.data().count;
         console.log(count);
@@ -196,6 +235,7 @@ export default {
           //this.timer = this.timeLimit;
           /*clearInterval(this.interval);*/
           this.dialogTitle = "時間到!";
+          this.correctAnswer = this.questions[this.answered].answer.trim();
           this.endGame();
         } else {
           // decrement timer
@@ -208,9 +248,9 @@ export default {
       const response = event.target.innerText.trim().replace(/&nbsp;/g, " ");
       const answer = this.questions[this.answered].answer.trim();
       //console.log("response"+ event.target);
-
+      const rand = this.rand();
       updateDoc(doc(db, "questions", this.questions[this.answered]._id), {
-        random: this.rand(),
+        random: rand < 0.2 ? rand + 0.2 : rand,
       });
       if (response == answer) {
         //if (response == this.questions[this.answered].answer) {
@@ -218,7 +258,9 @@ export default {
       } else {
         console.log(response, answer);
         //Answer wrong
-        this.dialogTitle = "哎呀，錯了!答案不是" + response + " bUT " + answer;
+        this.dialogTitle = "哎呀，錯了!";
+        this.wrongAnswer = response;
+        this.correctAnswer = answer;
         this.endGame();
       }
     },
