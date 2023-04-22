@@ -15,6 +15,7 @@
     "firebase": "^9.18.0",
     "roboto-fontface": "*",
     "vue": "^3.2.13",
+    "vue-responsive-video-background-player": "^2.3.1",
     "vue-router": "^4.0.0",
     "vuefire": "^3.1.0",
     "vuetify": "^3.0.0",

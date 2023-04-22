@@ -1,117 +1,126 @@
 <template>
-  <v-container>
-    <v-dialog
-      fullscreen
-      persistent
-      v-model="showDialog"
-      class="fill-height fill-width"
-    >
-      <v-card class="px-auto" color="secondary">
-        <div class="py-12 text-center">
-          <v-icon
-            class="mb-6"
-            color="primary"
-            icon="mdi-rocket"
-            size="128"
-          ></v-icon>
+  <video-background src="src/assets/lion.mp4" style="height: 100vh">
+    <v-container>
+      <audio
+        ref="audio"
+        src="https://music.163.com/song/media/outer/url?id=1901371647.mp3"
+        autoplay
+        loop
+        preload="auto"
+      ></audio>
+      <v-dialog
+        fullscreen
+        persistent
+        v-model="showDialog"
+        class="fill-height fill-width"
+      >
+        <v-card class="px-auto" color="secondary">
+          <div class="py-12 text-center">
+            <v-icon
+              class="mb-6"
+              color="primary"
+              icon="mdi-rocket"
+              size="128"
+            ></v-icon>
 
-          <div class="text-h2 font-weight-bold">{{ this.dialogTitle }}</div>
-          <div class="text-h4 mx-auto">{{ this.dialogText }}</div>
-        </div>
-        <v-btn
-          rounded="lg"
-          size="x-large"
-          class="mx-auto"
-          color="primary"
-          @click="showDialog = false"
-          >开始游戏</v-btn
-        >
-        <v-card
-          v-if="this.wrongAnswer != ''"
-          class="mx-auto my-2 mt-6"
-          :flat="true"
-          width="400"
-          prepend-icon="mdi-close-thick"
-          color="error"
-          variant="elevated"
-        >
-          <template v-slot:title>
-            <div class="text-h6 font-weight-bold">
-              {{ this.wrongAnswer }}
-            </div></template
-          >
-        </v-card>
-        <v-card
-          v-if="this.correctAnswer != ''"
-          class="mx-auto my-2"
-          width="400"
-          :flat="true"
-          prepend-icon="mdi-check-bold"
-          color="success"
-          variant="elevated"
-        >
-          <template v-slot:title>
-            <div class="text-h6 font-weight-bold">
-              {{ this.correctAnswer }}
-            </div>
-          </template>
-        </v-card>
-      </v-card>
-    </v-dialog>
-    <template v-if="this.questions[this.answered]">
-      <v-row justify="space-between">
-        <v-col>
-          <h4 class="text-h4 color-primary" color="primary">
-            {{ this.questions[this.answered].question }}
-          </h4>
-        </v-col>
-        <v-col cols="1">
-          <v-progress-circular
-            :rotate="360"
-            :size="100"
-            :width="15"
-            :model-value="((answered + 1) / 3) * 100"
-            color="primary"
-          >
-            <h6 class="text-h6">{{ answered + 1 }}/3</h6>
-          </v-progress-circular>
-        </v-col>
-      </v-row>
-      <v-progress-linear
-        class="my-2"
-        color="primary"
-        :model-value="(timer / timeLimit) * 100"
-        height="5"
-        stream
-      ></v-progress-linear>
-      <v-row align="center" justify="center">
-        <v-col
-          v-for="choice in this.questions[this.answered].choices"
-          :key="choice + answered"
-          class="text-center"
-          cols-lg="12"
-          cols="auto"
-        >
+            <div class="text-h2 font-weight-bold">{{ this.dialogTitle }}</div>
+            <div class="text-h4 mx-auto">{{ this.dialogText }}</div>
+          </div>
           <v-btn
-            :ripple="false"
-            min-height="72"
-            height="25vh"
-            max-height="45vh"
-            min-width="35vw"
-            width="100%"
+            rounded="lg"
             size="x-large"
-            color="secondary"
-            theme="primary"
-            @click="checkAnswer"
+            class="mx-auto"
+            color="primary"
+            @click="showDialog = false"
+            >开始游戏</v-btn
           >
-            <h5 class="text-h5">
-              {{ choice }}
-            </h5>
-          </v-btn>
-        </v-col>
-      </v-row>
-    </template>
-  </v-container>
+          <v-card
+            v-if="this.wrongAnswer != ''"
+            class="mx-auto my-2 mt-6"
+            :flat="true"
+            width="400"
+            prepend-icon="mdi-close-thick"
+            color="error"
+            variant="elevated"
+          >
+            <template v-slot:title>
+              <div class="text-h6 font-weight-bold">
+                {{ this.wrongAnswer }}
+              </div></template
+            >
+          </v-card>
+          <v-card
+            v-if="this.correctAnswer != ''"
+            class="mx-auto my-2"
+            width="400"
+            :flat="true"
+            prepend-icon="mdi-check-bold"
+            color="success"
+            variant="elevated"
+          >
+            <template v-slot:title>
+              <div class="text-h6 font-weight-bold">
+                {{ this.correctAnswer }}
+              </div>
+            </template>
+          </v-card>
+        </v-card>
+      </v-dialog>
+      <template v-if="this.questions[this.answered]">
+        <v-row justify="space-between">
+          <v-col>
+            <h4 class="text-h4 color-primary" color="primary">
+              {{ this.questions[this.answered].question }}
+            </h4>
+          </v-col>
+          <v-col cols="1">
+            <v-progress-circular
+              :rotate="360"
+              :size="100"
+              :width="15"
+              :model-value="((answered + 1) / 3) * 100"
+              color="primary"
+            >
+              <h6 class="text-h6">{{ answered + 1 }}/3</h6>
+            </v-progress-circular>
+          </v-col>
+        </v-row>
+        <v-progress-linear
+          class="my-2"
+          color="primary"
+          :model-value="(timer / timeLimit) * 100"
+          height="5"
+          stream
+        ></v-progress-linear>
+        <v-row align="center" justify="center">
+          <v-col
+            v-for="choice in this.questions[this.answered].choices"
+            :key="choice + answered"
+            class="text-center"
+            cols-lg="12"
+            cols="auto"
+          >
+            <v-btn
+              :ripple="false"
+              min-height="72"
+              height="25vh"
+              max-height="45vh"
+              min-width="35vw"
+              width="100%"
+              size="x-large"
+              color="secondary"
+              theme="primary"
+              @click="checkAnswer"
+            >
+              <h5 class="text-h5">
+                {{ choice }}
+              </h5>
+            </v-btn>
+          </v-col>
+        </v-row>
+      </template>
+    </v-container>
+  </video-background>
 </template>
 
 <script>
@@ -119,21 +128,13 @@ import { useFirestore, useCollection } from "vuefire";
 import {
   collection,
   doc,
-  documentId,
-  FieldPath,
   getCountFromServer,
-  getDoc,
   getDocs,
   limit,
-  or,
-  orderBy,
   query,
-  setDoc,
-  startAt,
   updateDoc,
   where,
 } from "firebase/firestore";
-import { questionsRef } from "@/plugins/firebase";
 
 const db = useFirestore();
 const questionCollection = collection(db, "questions");
@@ -153,8 +154,8 @@ export default {
           id: null,
         },
       ],
-      timeLimit: 20,
-      timer: 20,
+      timeLimit: 30,
+      timer: 30,
       interval: null,
       showDialog: true,
       dialogText: "點擊按鈕開始遊戲",
