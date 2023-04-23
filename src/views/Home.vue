@@ -1,5 +1,5 @@
 <template>
-  <video-background src="src/assets/lion.mp4" style="height: 100vh">
+  <video-background src="@/assets/lion.mp4" style="height: 100vh">
     <v-container>
       <audio
         ref="audio"
